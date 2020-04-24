@@ -1,0 +1,4 @@
+ignoreBots
+blockCurses
+addComments
+botEnabled

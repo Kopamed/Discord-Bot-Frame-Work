@@ -15,6 +15,11 @@ import time, asyncio
 def cler():
   print("\x1b[2J\x1b[H",end="")
 
+def fetch_flags():
+    pass
+print(bool(1))
+print(bool(0))
+
 token = os.getenv('TOKEN')
 #def load_token():
 #    f = open("?????", "r")
@@ -43,7 +48,7 @@ mods = [i.strip() for i in f.readlines()]
 
 #========== Main Flags ===========#
 
-flags = {"ignoreBots" : True, "cursesBlocked": True, "addComments": True, "botEnabled": True}
+flags = {"ignoreBots" : True, "blockCurses": True, "addComments": True, "botEnabled": True}
 
 
 @client.event
@@ -65,12 +70,43 @@ async def on_member_join(member):
 @client.event
 async def on_message(message):
 
+    if message.author == client.user and flags["ignoreBots"]:
+            return
 
-    if message.author in mods:
-        if len(message.content.split()) == 2:
-            return 
-        if message.content.split()[0] == "/flag":
-            pass
+
+    if message.content.split()[0] == "/flag":
+        if str(message.author) in mods:
+            if message.content == "/flag":
+                pass
+
+
+            if len(message.content.split()) == 2:
+            
+                if message.content.split()[1] in flags:
+                    
+                    await message.channel.send(str(flags[message.content.split()[1]])) 
+
+                else:
+                    await message.channel.send(f"There is no such flag named [{message.content.split()[1]}]")
+
+            elif len(message.content.split()) == 3:
+                if message.content.split()[1] in flags:
+
+                    if message.content.split()[2].lower() == "true":
+                        flags[message.content.split()[1]] = True
+                        await message.channel.send(f"Updated {message.content.split()[1]} to {flags[message.content.split()[1]]}")
+
+                    elif message.content.split()[2].lower() == "false":
+                        flags[message.content.split()[1]] = False
+                        await message.channel.send(f"Updated {message.content.split()[1]} to {flags[message.content.split()[1]]}")
+
+                    else:
+                        await message.channel.send(f"{message.content.split()[2]} is not a boolean")
+                else:
+                    await message.channel.send(f"There is no such flag named [{message.content.split()[1]}]")
+        else:
+            await message.channel.send("You are not authorized to perform this command")
+
 
 
     if flags["botEnabled"]:
@@ -78,10 +114,9 @@ async def on_message(message):
         global messages
         messages += 1
 
-        if message.author == client.user and flags["ignoreBots"]:
-            return
+       
 
-        if flags["cursesBlocked"]:
+        if flags["blockCurses"]:
             for word in bad_words:
                 if message.content.count(word) > 0 and message.author not in mods:
                     print(f"A bad word was said by [  {message.author}] - [{message.content}]")
@@ -95,9 +130,7 @@ async def on_message(message):
             elif message.content.lower() == 'f' or "fs" in  message.content:
                 response = "f"
                 await message.channel.send(response)
-    for i in bad_words:
-      if(i in message.content.lower()):
-        message.delete()
+    
 
 
     #THE BIT BELOW ME NEEDS DEEPER FILTERING... DO IT LATER
