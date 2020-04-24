@@ -15,10 +15,61 @@ import time, asyncio
 def cler():
   print("\x1b[2J\x1b[H",end="")
 
+
+
 def fetch_flags():
-    pass
-print(bool(1))
-print(bool(0))
+    flag_keyss = open("settings/flagKeys.txt","r")
+    flag_valss = open("settings/flagVals.txt", "r")
+    flag_keys = flag_keyss.readlines()
+    flag_vals = flag_valss.readlines()
+    flags = {}
+
+    for i in range(len(flag_keys)):
+        flags[flag_keys[i].strip()] = bool(int(flag_vals[i].strip()))
+
+    flag_keyss.close()
+    flag_valss.close()
+
+    return flags
+
+
+
+def fetch_cuses():
+    f = open("general/cuses.txt", "r")
+    foo = f.readlines()
+    listlol = []   
+    f.close()
+    for i in foo:
+        listlol.append(i.strip())
+
+    return listlol
+
+
+def save_file(filename):
+    f = open(filename, "r")
+    lines = []
+    for i in range(len(f.readlines())):
+        lines[i] = f.readlines()[i].strip()
+    f.close()
+    return lines    
+
+
+
+
+def update_flags():
+    #There is prob a better and quicker way to do this but il do it later
+    flag_keyss = open("settings/flagKeys.txt","w")
+    flag_valss = open("settings/flagVals.txt", "w")
+    write_key = ""
+    write_val = ""
+    for i in flags:
+        write_key += i+"\n"
+        if flags[i]:
+            write_val += "1\n"
+        else:
+            write_val += "0\n"
+    flag_keyss.write(write_key)
+    flag_valss.write(write_val)
 
 token = os.getenv('TOKEN')
 #def load_token():
@@ -38,7 +89,7 @@ client = discord.Client()
 cler()
 guild = client.get_guild(702792879772401674)
 channels = ["commands", "bot"]
-bad_words = ["fuck", "shit", "bitch"]
+bad_words = fetch_cuses()
 raw_channels = {"general":702792879772401677, "bot":702794344087814247, "commands": 702794305919647766, "welcome": 702844875888132096, "announcements": 702845142087892992}
 ggs = ["gg bois we did it", "yeah boiiii", "ok nice", "gg", "gg", "gg", "lol nice gg"]
 songs = ["https:!!www.youtube.com!watch?v=rNZ7r8pM37k", "https:!!www.youtube.com!watch?v=sBugnmrF3G8"]
@@ -48,7 +99,7 @@ mods = [i.strip() for i in f.readlines()]
 
 #========== Main Flags ===========#
 
-flags = {"ignoreBots" : True, "blockCurses": True, "addComments": True, "botEnabled": True}
+flags = fetch_flags()
 
 
 @client.event
@@ -94,6 +145,7 @@ async def on_message(message):
 
                     if message.content.split()[2].lower() == "true":
                         flags[message.content.split()[1]] = True
+                        
                         await message.channel.send(f"Updated {message.content.split()[1]} to {flags[message.content.split()[1]]}")
 
                     elif message.content.split()[2].lower() == "false":
@@ -106,7 +158,7 @@ async def on_message(message):
                     await message.channel.send(f"There is no such flag named [{message.content.split()[1]}]")
         else:
             await message.channel.send("You are not authorized to perform this command")
-
+        update_flags()
 
 
     if flags["botEnabled"]:
